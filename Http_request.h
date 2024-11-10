@@ -2,6 +2,8 @@
 #define HTTP_REQUEST
 
 #include "Http_Enums.h"
+#include "Http_Header_Field.h"
+#include <map>
 #include <string>
 #include <vector>
 
@@ -13,9 +15,12 @@ class HTTP_Request {
 public:
   class HTTP_Header_field;
 
+  // -----------------CONSTRUCTORS HTTP_Request---------------------
+
   HTTP_Request(HTTP_METHODS_ENUM, const std::string &target,
                const std::string &version,
-               const std::vector<HTTP_Header_field> &, const std::string &body);
+               const std::map<HTTP_HEADERS_FIELD_ENUM, std::string> &,
+               const std::string &body);
 
   // Copy construcor = default
   HTTP_Request(const HTTP_Request &other) = default;
@@ -23,34 +28,17 @@ public:
   // Operator =
   HTTP_Request &operator=(const HTTP_Request &other) = default;
 
-  class HTTP_Header_field {
-  public:
-    HTTP_Header_field(HTTP_HEADERS_FIELD_ENUM header,
-                      const std::string &header_name);
+  // ---------------END  CONSTRUCTORS HTTP_Request-----------------
 
-    // Get Set m_header_field_type;
-    HTTP_HEADERS_FIELD_ENUM GetHeaderField() const;
-
-    HTTP_HEADERS_FIELD_ENUM
-    SetHeaderField(HTTP_HEADERS_FIELD_ENUM header_field_type);
-    //
-    // Get Set m_header_field_name;
-    std::string GetHeaderName() const;
-
-    std::string SetHeaderName(const std::string &header_field_name);
-
-  private:
-    HTTP_HEADERS_FIELD_ENUM m_header_field_type;
-    std::string m_header_field_name;
-  };
-
-  //
+  // -------------------------------
   // Class Methods
-  //
+  // -------------------------------
 public:
   // -------------
   // Request Line
   // -------------
+
+  HTTP_METHODS_ENUM GetMethod() const;
 
   std::string GetTarget() const;
 
@@ -60,7 +48,12 @@ public:
   // Headers
   // --------
 
-  HTTP_Header_field GetHeaderField(const std::string &header_field_name);
+  // If HTTP request doesn't have
+  // header of this header_field_type
+  // we return empty std::string
+  //
+  // Finding in m_headers a http_headers_field_type and return value
+  std::string GetHeaderValue(HTTP_HEADERS_FIELD_ENUM http_header_field_type);
 
   // -----
   // Body
@@ -68,9 +61,9 @@ public:
 
   const std::string &GetBody() const;
 
-  //
+  // ------------------------------
   // VARIABLES
-  //
+  // ------------------------------
 private:
   // -------------
   // Request Line
@@ -91,8 +84,8 @@ private:
   //
 
   // Like Server: Apache
-  // std::map<std::string, std::string> m_headers;
-  std::vector<HTTP_Header_field> m_headers;
+  std::map<HTTP_HEADERS_FIELD_ENUM, std::string> m_headers;
+  // std::vector<HTTP_Header_field> m_headers;
 
   // -----
   // Body
