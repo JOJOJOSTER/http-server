@@ -7,7 +7,7 @@
 #include <string>
 
 /*
- *  HTTP Request
+ *  HTTP Response
  * --------------------------------
  * |  VERSION   Status Code       |
  * --------------------------------
@@ -80,7 +80,7 @@ public:
   // ------------------------------
 private:
   // -------------
-  // Responde Line
+  // Response Line
   // -------------
 
   // Like HTTP/1.1
@@ -93,6 +93,7 @@ private:
 
   // Like Server: Apache
 
+  // TO-DO maybe change on std::vector
   std::map<HTTP_RESPONSE_HEADERS_FIELD_ENUM, HTTP_Header_Field> m_headers;
 
   // -----

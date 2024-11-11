@@ -98,6 +98,7 @@ private:
   // --------
 
   // Like Server: Apache
+  // TO-DO Maybe change on std::vector
   std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM, HTTP_Header_Field> m_headers;
   // std::vector<HTTP_Header_field> m_headers;
 

@@ -108,6 +108,9 @@ enum HTTP_STATUS_CODE {
 
 };
 
+// TO_DO:
+// change this enum class to enum
+// and put it to namespace
 enum class HTTP_RESPONSE_HEADERS_FIELD_ENUM {
 
   Accept_CH,
