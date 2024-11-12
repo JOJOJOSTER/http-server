@@ -12,16 +12,16 @@ namespace jojojoster::http {
 // TO-DO Make a template (HTTP_REQUEST_HEADERS_FIELD_ENUM and
 // HTTP_REQUEST_HEADERS_FIELD_ENUM)
 // Learn a SFINAL
-class HTTP_Header_Field {
+template <typename T> class HTTP_Header_Field {
 
   // https://ru.stackoverflow.com/questions/494672/Шаблоны-в-c-Ограничение-типа
-  /*
+
   static const bool is_HTTP_REQUEST_of_HTTP_RESPONSE =
       std::is_same<T, HTTP_REQUEST_HEADERS_FIELD_ENUM>::value ||
       std::is_same<T, HTTP_RESPONSE_HEADERS_FIELD_ENUM>::value;
 
-  static_assert(is_HTTP_REQUEST_of_HTTP_RESPONSE, "" );
-*/
+  static_assert(is_HTTP_REQUEST_of_HTTP_RESPONSE,
+                "Not correct type of template T");
 
 public:
   explicit HTTP_Header_Field(HTTP_REQUEST_HEADERS_FIELD_ENUM header,
@@ -35,21 +35,29 @@ public:
   //
   // Get Set m_header_field_type;
   //
-  HTTP_REQUEST_HEADERS_FIELD_ENUM GetHeaderFieldEnum() const;
+  T GetHeaderFieldEnum() const;
 
-  HTTP_REQUEST_HEADERS_FIELD_ENUM
-  SetHeaderFieldEnum(HTTP_REQUEST_HEADERS_FIELD_ENUM header_field_type);
+  // Don't reliaze this
+  // because it can cause a bug
+  // with std::map (Map key HTTP_ENUM maybe is One,
+  // but programmer change HTTP_ENUM One of header on
+  // HTTP_ENUM NINE)
+  //
+  // void SetHeaderFieldEnum(HTTP_REQUEST_HEADERS_FIELD_ENUM header_field_type);
 
   //
   // Get Set m_header_field_name;
   //
   std::string GetHeaderValue() const;
 
-  std::string SetHeaderValue(const std::string &header_field_name);
+  void SetHeaderValue(const std::string &header_field_name);
 
   // --------------
   // STATIC FUNC
   // --------------
+
+  // TO-DO
+  // Move static functions to another class (Converter)
 public:
   static std::string Convert_Enum_Request_Headers_Field_Type_To_String(
       HTTP_REQUEST_HEADERS_FIELD_ENUM http_headers_field_type);

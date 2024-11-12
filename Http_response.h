@@ -27,10 +27,12 @@ namespace jojojoster::http {
 class HTTP_Response {
 
   // -----------------CONSTRUCTORS HTTP_Request---------------------
-  HTTP_Response(HTTP_VERSION version, HTTP_STATUS_CODE status_code,
-                const std::map<HTTP_RESPONSE_HEADERS_FIELD_ENUM,
-                               HTTP_Header_Field> &m_headers,
-                const std::string &body);
+  HTTP_Response(
+      HTTP_VERSION version, HTTP_STATUS_CODE status_code,
+      const std::map<HTTP_RESPONSE_HEADERS_FIELD_ENUM,
+                     HTTP_Header_Field<HTTP_RESPONSE_HEADERS_FIELD_ENUM>>
+          &m_headers,
+      const std::string &body);
 
   HTTP_Response(const HTTP_Response &other) = default;
 
@@ -63,9 +65,13 @@ public:
   // we return empty std::string
   //
   // Finding in m_headers a http_headers_field_type and return value
+  /*
+    const std::string &
+    GetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM http_header_field_type);
+  */
 
-  const std::string &
-  GetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM http_header_field_type);
+  void
+  SetHeader(HTTP_Header_Field<HTTP_RESPONSE_HEADERS_FIELD_ENUM> http_header);
 
   // -----
   // Body
@@ -94,7 +100,9 @@ private:
   // Like Server: Apache
 
   // TO-DO maybe change on std::vector
-  std::map<HTTP_RESPONSE_HEADERS_FIELD_ENUM, HTTP_Header_Field> m_headers;
+  std::map<HTTP_RESPONSE_HEADERS_FIELD_ENUM,
+           HTTP_Header_Field<HTTP_RESPONSE_HEADERS_FIELD_ENUM>>
+      m_headers;
 
   // -----
   // Body

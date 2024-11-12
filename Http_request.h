@@ -33,9 +33,12 @@ public:
 
   // -----------------CONSTRUCTORS HTTP_Request---------------------
 
+  HTTP_Request();
+
   HTTP_Request(
       HTTP_METHODS_ENUM, const std::string &target, HTTP_VERSION version,
-      const std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM, HTTP_Header_Field> &,
+      const std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM,
+                     HTTP_Header_Field<HTTP_REQUEST_HEADERS_FIELD_ENUM>> &,
       const std::string &body);
 
   // Copy construcor = default
@@ -54,11 +57,23 @@ public:
   // Request Line
   // -------------
 
+  // Method
+
   HTTP_METHODS_ENUM GetMethod() const;
+
+  void SetMethod(HTTP_METHODS_ENUM http_method);
+
+  // Target
 
   const std::string &GetTarget() const;
 
+  void SetTarget(const std::string &target);
+
+  // Version
+
   HTTP_VERSION GetVersion() const;
+
+  void SetVersion(HTTP_VERSION http_version);
 
   // --------
   // Headers
@@ -72,11 +87,18 @@ public:
   const std::string &
   GetHeaderValue(HTTP_REQUEST_HEADERS_FIELD_ENUM http_header_field_type);
 
+  void SetHeaderValue(HTTP_REQUEST_HEADERS_FIELD_ENUM http_request_enum,
+                      const std::string &header_value);
+
+  // const HTTP_Header_Field<HTTP_REQUEST_HEADERS_FIELD_ENUM> GetHeader() const;
+
   // -----
   // Body
   // -----
 
   const std::string &GetBody() const;
+
+  void SetBody(const std::string &body);
 
   // ------------------------------
   // VARIABLES
@@ -99,7 +121,9 @@ private:
 
   // Like Server: Apache
   // TO-DO Maybe change on std::vector
-  std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM, HTTP_Header_Field> m_headers;
+  std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM,
+           HTTP_Header_Field<HTTP_REQUEST_HEADERS_FIELD_ENUM>>
+      m_headers;
   // std::vector<HTTP_Header_field> m_headers;
 
   // -----
@@ -108,8 +132,6 @@ private:
 
   std::string m_body;
 };
-
-class HTTP_Response {};
 
 } // namespace jojojoster::http
 
