@@ -1,7 +1,7 @@
-#include "Http_Enums.h"
-#include "Http_Header_Field.h"
-#include "Http_request.h"
-#include "googletest/googletest/include/gtest/gtest.h"
+#include "../googletest/googletest/include/gtest/gtest.h"
+#include "../http_parser/Http_Enums.h"
+#include "../http_parser/Http_Header_Field.h"
+#include "../http_parser/Http_request.h"
 
 using jojojoster::http::HTTP_METHODS_ENUM;
 using jojojoster::http::HTTP_Request;
