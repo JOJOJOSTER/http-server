@@ -24,8 +24,7 @@ template <typename T> class HTTP_Header_Field {
                 "Not correct type of template T");
 
 public:
-  explicit HTTP_Header_Field(HTTP_REQUEST_HEADERS_FIELD_ENUM header,
-                             const std::string &header_name);
+  HTTP_Header_Field(T header, const std::string &header_name);
 
   explicit HTTP_Header_Field(const HTTP_Header_Field &other) = default;
 
@@ -63,7 +62,7 @@ public:
       HTTP_REQUEST_HEADERS_FIELD_ENUM http_headers_field_type);
 
 private:
-  HTTP_REQUEST_HEADERS_FIELD_ENUM m_header_field_type;
+  T m_header_field_type;
   std::string m_header_field_name;
 };
 

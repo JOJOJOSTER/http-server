@@ -36,9 +36,9 @@ public:
   HTTP_Request();
 
   HTTP_Request(
-      HTTP_METHODS_ENUM, const std::string &target, HTTP_VERSION version,
-      const std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM,
-                     HTTP_Header_Field<HTTP_REQUEST_HEADERS_FIELD_ENUM>> &,
+      HTTP_METHODS_ENUM http_method, const std::string &target,
+      HTTP_VERSION version,
+      const std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM, std::string> &headers,
       const std::string &body);
 
   // Copy construcor = default
@@ -84,7 +84,10 @@ public:
   // we return empty std::string
   //
   // Finding in m_headers a http_headers_field_type and return value
-  const std::string &
+  // --------------------------------------------------------------
+  // // I changed return type (reference -> just type).
+  // TO-DO Correct it.
+  const std::string
   GetHeaderValue(HTTP_REQUEST_HEADERS_FIELD_ENUM http_header_field_type);
 
   void SetHeaderValue(HTTP_REQUEST_HEADERS_FIELD_ENUM http_request_enum,
@@ -121,9 +124,7 @@ private:
 
   // Like Server: Apache
   // TO-DO Maybe change on std::vector
-  std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM,
-           HTTP_Header_Field<HTTP_REQUEST_HEADERS_FIELD_ENUM>>
-      m_headers;
+  std::map<HTTP_REQUEST_HEADERS_FIELD_ENUM, std::string> m_headers;
   // std::vector<HTTP_Header_field> m_headers;
 
   // -----
