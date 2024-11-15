@@ -7,7 +7,7 @@
 
 namespace jojojoster::http {
 
-class Convert_String_To_HTTP_Request_And_Parse {
+class HTTP_Request_Parser_And_Converter {
 public:
   //    //Request Line\\
   //
@@ -29,23 +29,8 @@ public:
   // 1. Parse Body(to std::string)
   //
   //
-  static HTTP_Request Parse_String(std::string http_request);
-
-private:
-  // Methods, Target, Version
-  //
-  static HTTP_METHODS_ENUM
-  Convert_String_Method_To_Enum_HTTP_METHODS(const std::string &method);
-
-  static HTTP_VERSION
-  Convert_String_Version_To_Enum_HTTP_VERSION(const std::string &version);
-
-  // HEADERS
-  //
-
-  static HTTP_REQUEST_HEADERS_FIELD_ENUM
-  Convert_String_Header_Field_To_Enum_HTTP_Headers(
-      const std::string &header_field);
+  static HTTP_Request Parse_String_And_Convert_To_HTTP_Request(
+      const std::string &http_request_string);
 };
 
 } // namespace jojojoster::http

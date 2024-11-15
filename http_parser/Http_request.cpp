@@ -1,5 +1,6 @@
 #include "Http_request.h"
 #include "Http_Enums.h"
+#include "Http_converter.h"
 #include <iostream>
 
 namespace jojojoster::http {
@@ -49,20 +50,40 @@ void HTTP_Request::SetVersion(HTTP_VERSION http_version) {
 //
 
 // I changed return type (reference -> just type).
-// TO-DO Correct it.
+// TO-DO Maybe Correct it.
 const std::string HTTP_Request::GetHeaderValue(
     HTTP_REQUEST_HEADERS_FIELD_ENUM http_header_field_type) {
 
+  /*
+  auto it_2 = m_headers.begin();
+
+  while (it_2 != m_headers.end()) {
+    std::cout << Converter::Convert_Enum_HTTP_Request_Headers_To_String(
+                     it_2->first)
+              << " " << it_2->second << std::endl;
+    ++it_2;
+  }
+
+  std::cerr << "\nWanna find: \t"
+            << Converter::Convert_Enum_HTTP_Request_Headers_To_String(
+                   http_header_field_type)
+            << std::endl;
+
   auto it = m_headers.find(http_header_field_type);
+
+  std::cerr << "\nFound:\t"
+            << Converter::Convert_Enum_HTTP_Request_Headers_To_String(it->first)
+            << "\t" << it->second << std::endl;
+  */
+
+  auto it = m_headers.find(http_header_field_type);
+
   if (it == m_headers.end()) {
 
     return "";
   }
 
   return it->second;
-
-  // TO-DO relieze this function
-  //
 }
 
 void HTTP_Request::SetHeaderValue(
