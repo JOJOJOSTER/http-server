@@ -11,6 +11,7 @@ add_library(http_parser_lib SHARED
   http_parser/Http_request_parse.h 
   http_parser/Http_request_parse.cpp
   http_parser/Http_response.h 
+    http_parser/Http_response.cpp
   http_parser/Http_Header_Field.h
   http_parser/Http_converter.h 
   http_parser/Http_converter.cpp)
@@ -20,3 +21,6 @@ target_link_libraries(test_converter gtest gmock http_parser_lib)
 
 add_executable(tests test/test_HTTP_Request.cpp)
 target_link_libraries(tests gtest gmock http_parser_lib)
+
+add_executable(tests_response test/test_HTTP_Response.cpp)
+target_link_libraries(tests_response gtest gmock http_parser_lib)
