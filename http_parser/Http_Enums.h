@@ -65,13 +65,14 @@ enum class HTTP_REQUEST_HEADERS_FIELD_ENUM {
 // https://en.wikipedia.org/wiki/HTTP
 enum HTTP_VERSION { HTTP_0_9, HTTP_1, HTTP_1_1, HTTP_2, HTTP_3 };
 
-enum HTTP_STATUS_CODE {
+enum class HTTP_STATUS_CODE {
 
   // 1xx informational response
   Continue = 100,
   Switching_Protocols = 101,
   Processing = 102,
   Early_Hints = 103,
+
   // 2xx success
   OK = 200,
   Created = 201,
@@ -83,6 +84,7 @@ enum HTTP_STATUS_CODE {
   Multi_Status = 207,
   Already_Reported = 208,
   IM_Used = 209,
+
   // 3xx redirection
   Multiple_Choices = 300,
   Moved_Permanently = 301,
@@ -93,6 +95,7 @@ enum HTTP_STATUS_CODE {
   Switch_Proxy = 306,
   Temporary_Redirect = 307,
   Permanent_Redirect = 308,
+
   // 4xx client errors
   Bad_Request = 400,
   Unauthorized = 401,
@@ -102,9 +105,40 @@ enum HTTP_STATUS_CODE {
   Method_Not_Allowed = 405,
   Not_Acceptable = 406,
   Proxy_Authentication_Required = 407,
-  // TO_DO Add 4xx status code
+  Request_Timeout = 408,
+  Conflict = 409,
+  Gone = 410,
+  Length_Required = 411,
+  Precondition_Failed = 412,
+  Payload_Too_Large = 413,
+  URI_Too_Long = 414,
+  Unsupported_Media_Type = 415,
+  Range_Not_Satisfiable = 416,
+  Expectation_Failed = 417,
+  I_m_A_Teapot = 418, // RFC 2324
+  Misdirected_Request = 421,
+  Unprocessable_Entity = 422,
+  Locked = 423,
+  Failed_Dependency = 424,
+  Too_Early = 425,
+  Upgrade_Required = 426,
+  Precondition_Required = 428,
+  Too_Many_Requests = 429,
+  Request_Header_Fields_Too_Large = 431,
+  Unavailable_For_Legal_Reasons = 451,
 
   // 5xx server errors
+  Internal_Server_Error = 500,
+  Not_Implemented = 501,
+  Bad_Gateway = 502,
+  Service_Unavailable = 503,
+  Gateway_Timeout = 504,
+  HTTP_Version_Not_Supported = 505,
+  Variant_Also_Negotiates = 506,
+  Insufficient_Storage = 507,
+  Loop_Detected = 508,
+  Not_Extended = 510,
+  Network_Authentication_Required = 511
 
 };
 
@@ -114,8 +148,14 @@ enum HTTP_STATUS_CODE {
 enum class HTTP_RESPONSE_HEADERS_FIELD_ENUM {
 
   Accept_CH,
+  Access_Control_Allow_Origin,
+  Access_Control_Allow_Credentials,
+  Access_Control_Expose_Headers,
+  Access_Control_Max_Age,
   Access_Control_Allow_Methods,
   Access_Control_Allow_Headers,
+  Accept_Patch,
+  Accept_Ranges,
   Age,
   Allow,
   Alt_Svc,
@@ -155,55 +195,6 @@ enum class HTTP_RESPONSE_HEADERS_FIELD_ENUM {
   Warning,
   WWW_Authenticate,
   X_Frame_Options,
-  Accept_Patch,
-  Accept_Ranges,
-  Access_Control_Allow_Origin,
-  Access_Control_Allow_Credentials,
-  Access_Control_Expose_Headers,
-  Access_Control_Max_Age,
-  /*
-  Access_Control_Allow_Methods,
-  Access_Control_Allow_Headers,
-  Age,
-  Allow,
-  Alt_Svc,
-  Cache_Control,
-  Connection,
-  Content_Disposition,
-  Content_Encoding,
-  Content_Language,
-  Content_Length,
-  Content_Location,
-  Content_MD5,
-  Content_Range,
-  Content_Type,
-  Date,
-  Delta_Base,
-  ETag,
-  Expires,
-  IM,
-  Last_Modified,
-  Link,
-  Location,
-  P3P,
-  Pragma,
-  Preference_Applied,
-  Proxy_Authenticate,
-  Public_Key_Pins,
-  Retry_After,
-  Server,
-  Set_Cookie,
-  Strict_Transport_Security,
-  Trailer,
-  Transfer_Encoding,
-  Tk,
-  Upgrade,
-  Vary,
-  Via,
-  Warning,
-  WWW_Authenticate,
-  X_Frame_Options
-  */
 
 };
 

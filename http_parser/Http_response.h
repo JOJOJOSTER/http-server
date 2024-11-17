@@ -26,6 +26,12 @@ namespace jojojoster::http {
 
 class HTTP_Response {
 public:
+  // Crutch
+  friend class HTTP_Response_Converter;
+  class Converter;
+  friend std::string
+  Convert_HTTP_Reponse_To_String(const HTTP_Response &Http_response);
+
   // -----------------CONSTRUCTORS HTTP_Request---------------------
   HTTP_Response(
       HTTP_VERSION version, HTTP_STATUS_CODE status_code,
@@ -68,8 +74,8 @@ public:
     GetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM http_header_field_type);
   */
 
-  std::string
-  GetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM http_response_header_enum);
+  std::string GetHeaderValue(
+      HTTP_RESPONSE_HEADERS_FIELD_ENUM http_response_header_enum) const;
 
   void
   SetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM http_response_header_enum,

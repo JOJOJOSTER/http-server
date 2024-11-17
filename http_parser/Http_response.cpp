@@ -22,7 +22,7 @@ void HTTP_Response::SetStatusCode(HTTP_STATUS_CODE status_code_enum) {
 }
 
 std::string HTTP_Response::GetHeaderValue(
-    HTTP_RESPONSE_HEADERS_FIELD_ENUM http_response_header_enum) {
+    HTTP_RESPONSE_HEADERS_FIELD_ENUM http_response_header_enum) const {
 
   auto it = m_headers.find(http_response_header_enum);
 
