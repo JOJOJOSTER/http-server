@@ -22,10 +22,11 @@ protected:
 };
 
 //
-// TO-DO Change tests name
+// TO-DO
+// Add test
 //
 
-TEST_F(ConvertHTTPReponse_To_String, test_1) {
+TEST_F(ConvertHTTPReponse_To_String, Default_test) {
   std::string expected_answer =
       "HTTP/1.1 200 OK\r\nServer: ServerGoritBlin\r\n\r\nVse otlichno";
 
@@ -34,7 +35,7 @@ TEST_F(ConvertHTTPReponse_To_String, test_1) {
       expected_answer);
 }
 
-TEST_F(ConvertHTTPReponse_To_String, test_2) {
+TEST_F(ConvertHTTPReponse_To_String, Set_Version) {
   std::string expected_answer =
       "HTTP/2 200 OK\r\nServer: ServerGoritBlin\r\n\r\nVse otlichno";
 
@@ -45,7 +46,7 @@ TEST_F(ConvertHTTPReponse_To_String, test_2) {
       expected_answer);
 }
 
-TEST_F(ConvertHTTPReponse_To_String, test_3) {
+TEST_F(ConvertHTTPReponse_To_String, Change_Status_Code) {
   std::string expected_answer = "HTTP/1.1 418 I'm A Teapot\r\nServer: "
                                 "ServerGoritBlin\r\n\r\nVse otlichno";
 
@@ -56,7 +57,7 @@ TEST_F(ConvertHTTPReponse_To_String, test_3) {
       expected_answer);
 }
 
-TEST_F(ConvertHTTPReponse_To_String, test_4) {
+TEST_F(ConvertHTTPReponse_To_String, Add_Header) {
   std::string expected_answer =
       "HTTP/1.1 200 OK\r\nLink: "
       "https://example.com\r\nServer: ServerGoritBlin\r\n\r\nVse otlichno";
@@ -69,7 +70,7 @@ TEST_F(ConvertHTTPReponse_To_String, test_4) {
       expected_answer);
 }
 
-TEST_F(ConvertHTTPReponse_To_String, test_5) {
+TEST_F(ConvertHTTPReponse_To_String, Add_two_header) {
   std::string expected_answer =
       "HTTP/1.1 200 OK\r\nLink: "
       "https://example.com\r\nServer: ServerGoritBlin\r\nWarning: Opa opa o pa "

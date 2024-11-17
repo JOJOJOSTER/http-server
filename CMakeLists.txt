@@ -18,14 +18,22 @@ add_library(http_parser_lib SHARED
   http_parser/Http_response_converter.h
   http_parser/Http_response_converter.cpp)
 
-add_executable(test_converter test/test_HTTP_Converter.cpp)
-target_link_libraries(test_converter gtest gmock http_parser_lib)
+add_executable(test_http_converter test/test_HTTP_Converter.cpp)
+target_link_libraries(test_http_converter gtest gmock http_parser_lib)
 
-add_executable(tests test/test_HTTP_Request.cpp)
-target_link_libraries(tests gtest gmock http_parser_lib)
+add_test(test_http_converter "./test_http_converter")
 
-add_executable(tests_response test/test_HTTP_Response.cpp)
-target_link_libraries(tests_response gtest gmock http_parser_lib)
+add_executable(tests_http_request test/test_HTTP_Request.cpp)
+target_link_libraries(tests_http_request gtest gmock http_parser_lib)
 
-add_executable(test_response_converter test/test_HTTP_Response_To_String.cpp)
-target_link_libraries(test_response_converter gtest gmock http_parser_lib)
+add_test(tests_http_request "./tests_http_request")
+
+add_executable(tests_http_response test/test_HTTP_Response.cpp)
+target_link_libraries(tests_http_response gtest gmock http_parser_lib)
+
+add_test(tests_http_response "./tests_http_response")
+
+add_executable(test_http_response_converter test/test_HTTP_Response_To_String.cpp)
+target_link_libraries(test_http_response_converter gtest gmock http_parser_lib)
+
+add_test(test_http_response_converter "./test_http_response_converter")
