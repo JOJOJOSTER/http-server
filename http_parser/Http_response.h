@@ -33,10 +33,10 @@ public:
   Convert_HTTP_Reponse_To_String(const HTTP_Response &Http_response);
 
   // -----------------CONSTRUCTORS HTTP_Request---------------------
-  HTTP_Response(
-      HTTP_VERSION version, HTTP_STATUS_CODE status_code,
-      const std::map<HTTP_RESPONSE_HEADERS_FIELD_ENUM, std::string> &headers,
-      const std::string &body);
+  HTTP_Response(HTTP_VERSION version, HTTP_STATUS_CODE status_code,
+                const std::map<HTTP_RESPONSE_HEADERS_FIELD_ENUM, std::string>
+                    &headers = {},
+                const std::string &body = "");
 
   HTTP_Response(const HTTP_Response &other) = default;
 

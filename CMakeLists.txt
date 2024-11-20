@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(http-server)
 
-enable_testing()
-add_subdirectory(googletest)
+set(CMAKE_CXX_STANDARD 20)
 
 add_library(http_parser_lib SHARED
   http_parser/Http_Enums.h 
@@ -17,6 +16,12 @@ add_library(http_parser_lib SHARED
   http_parser/Http_converter.cpp
   http_parser/Http_response_converter.h
   http_parser/Http_response_converter.cpp)
+
+add_executable(http_server example/http-server.cpp )
+target_link_libraries(http_server http_parser_lib)
+
+enable_testing()
+add_subdirectory(googletest)
 
 add_executable(test_http_converter test/test_HTTP_Converter.cpp)
 target_link_libraries(test_http_converter gtest gmock http_parser_lib)

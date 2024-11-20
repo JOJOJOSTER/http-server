@@ -5,6 +5,10 @@
 namespace jojojoster::http {
 
 class Converter {
+
+  Converter() = delete;
+  Converter(const Converter *other) = delete;
+
 public:
   // ----------------String to enum
 

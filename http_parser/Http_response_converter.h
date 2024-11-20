@@ -7,6 +7,10 @@
 namespace jojojoster::http {
 
 class HTTP_Response_Converter {
+
+  HTTP_Response_Converter() = delete;
+  HTTP_Response_Converter(const HTTP_Response_Converter &other) = delete;
+
 public:
   // HTTP_response to std::String
   //
