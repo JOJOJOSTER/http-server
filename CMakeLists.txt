@@ -17,8 +17,14 @@ add_library(http_parser_lib SHARED
   http_parser/Http_response_converter.h
   http_parser/Http_response_converter.cpp)
 
+find_package(jsoncpp REQUIRED)
+
 add_executable(http_server example/http-server.cpp )
-target_link_libraries(http_server http_parser_lib)
+target_link_libraries(http_server http_parser_lib jsoncpp )
+
+# TESTS 
+
+message( STATUS "Compiling tests")
 
 enable_testing()
 add_subdirectory(googletest)

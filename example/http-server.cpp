@@ -6,11 +6,15 @@
 #include "../http_parser/Http_response_converter.h"
 #include <cstring>
 #include <iostream>
+#include <json/json.h>
+#include <json/reader.h>
+#include <json/value.h>
 #include <netinet/in.h>
 #include <stdexcept>
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 using jojojoster::http::HTTP_METHODS_ENUM;
 using jojojoster::http::HTTP_Request;
@@ -75,57 +79,86 @@ public:
     // TO-DO
     // I can add Exeption
 
-    auto it = m_products.find(id);
-    if (it != m_products.end()) {
-      return it->second;
-    }
+    if (id < m_products.size())
+      return m_products[id];
 
     // TO-DO throw Exeption
     throw std::out_of_range("The product doesn't exist");
   }
   // Set Product - {id}  arf({id}, name, price)
-  void SetOrAddProduct(long id, const std::string &name, long price) {
-
-    auto it = m_products.find(id);
-
-    if (it != m_products.end()) {
-
-      it->second = Product(id, name, price);
-      return;
-    }
-
-    m_products.emplace(std::pair<long, Product>(id, Product(id, name, price)));
+  void AddProduct(const std::string &name, long price) {
+    m_products.push_back(Product(s_id++, name, price));
   }
+
   // GetProductString
   std::string GetProductString(long id) {
-    auto it = m_products.find(id);
-    if (it != m_products.end()) {
 
-      return m_products[id].GetProductString();
-    }
-
-    throw std::out_of_range("The product doesn't exist");
+    return m_products[id].GetProductString();
   }
   // GetProductsString
   std::string GetProductsString() {
     std::string answer;
     answer.reserve(1000);
 
-    for (auto it = m_products.begin(); it != m_products.end(); ++it) {
-      answer += it->second.GetProductString();
+    for (long iii = 0; iii < s_id; ++iii) {
+      answer += m_products[iii].GetProductString();
       answer += '\n';
     }
 
     return answer;
   }
 
+  long GetProductSize() const { return s_id; }
+
 private:
-  std::map<long, Product> m_products;
+  std::vector<Product> m_products;
+
+  long s_id = 0;
 };
+
+/*
+
+// TO-DO
+
+GET /api/products — get list of products.     OK
+GET /api/products/{id} — get product with id. 50% (Add json return)
+POST /api/products — add new product.         OK
+PUT /api/products/{id} — update product.      NO  (JSON)
+DELETE /api/products/{id} — delete product.   NO
+
+*/
+
+HTTP_Response HTTP_ERROR(const std::string &message) {
+  HTTP_Response http_error_return(HTTP_VERSION::HTTP_1_1,
+                                  HTTP_STATUS_CODE::Not_Found, {}, message);
+  http_error_return.SetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server,
+                                   "Sosedneii otdel OS");
+  http_error_return.SetHeaderValue(
+      HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length,
+      std::to_string(message.size()));
+
+  return http_error_return;
+}
+
+HTTP_Response HTTP_SUACESS(const std::string &message) {
+  HTTP_Response http_error_return(HTTP_VERSION::HTTP_1_1, HTTP_STATUS_CODE::OK,
+                                  {}, message);
+  http_error_return.SetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server,
+                                   "OOO Uspeh");
+  http_error_return.SetHeaderValue(
+      HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length,
+      std::to_string(message.size()));
+
+  return http_error_return;
+}
 
 HTTP_Response http_handler(const HTTP_Request &http_request,
                            ProductDataBase &product_database) {
 
+  //
+  // Target: /API/PRODUCTS
+  // Method: GET
+  //
   if (http_request.GetMethod() == HTTP_METHODS_ENUM::GET &&
       http_request.GetTarget() == "/api/products") {
 
@@ -134,6 +167,8 @@ HTTP_Response http_handler(const HTTP_Request &http_request,
 
     http_response_return.SetHeaderValue(
         HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server, "Bucket OS");
+    http_response_return.SetHeaderValue(
+        HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Type, "text/plain");
 
     std::string message;
     message.reserve(1000);
@@ -147,15 +182,22 @@ HTTP_Response http_handler(const HTTP_Request &http_request,
 
     return http_response_return;
   }
-
-  if (http_request.GetMethod() == HTTP_METHODS_ENUM::GET &&
-      http_request.GetTarget().substr(0, 14) == "/api/products/") {
+  //
+  // Target: /api/products/ or /api/products/{id}
+  // Method: GET
+  //
+  else if (http_request.GetMethod() == HTTP_METHODS_ENUM::GET &&
+           http_request.GetTarget().substr(0, 14) == "/api/products/") {
 
     long product_id;
     bool idIsHas = true;
 
     try {
-
+      // TO-DO
+      // Make similar function
+      // without expection
+      // (For optimization).
+      //
       product_id = std::stol(http_request.GetTarget().substr(
           14, http_request.GetTarget().size() - 1));
 
@@ -168,7 +210,11 @@ HTTP_Response http_handler(const HTTP_Request &http_request,
       std::cerr << "Out of range: Very larger id\n\n";
       idIsHas = false;
     }
-
+    //
+    // Targer: /api/products/{ID}
+    // Method: GET
+    // Return Product
+    //
     if (idIsHas) {
 
       std::cerr << "/API/PRODUCTS/{id}" << std::endl;
@@ -179,7 +225,13 @@ HTTP_Response http_handler(const HTTP_Request &http_request,
       http_response_return.SetHeaderValue(
           HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server, "Bucket OS");
 
-      std::string message = "Product id" + std::to_string(product_id) + '\n';
+      if (product_id >= product_database.GetProductSize()) {
+        return HTTP_ERROR("404\nId not found");
+      }
+
+      std::string message = "Product id";
+      message += product_database.GetProductString(product_id);
+      message += '\n';
 
       http_response_return.SetBody(message);
 
@@ -195,17 +247,85 @@ HTTP_Response http_handler(const HTTP_Request &http_request,
 
       return http_response_return;
     }
+
+    //
+    // Target: /api/products
+    // Method: POST
+    // JSON
+    //
+  } else if (http_request.GetMethod() == HTTP_METHODS_ENUM::POST &&
+             http_request.GetTarget() == "/api/products") {
+    Json::Value root;
+    Json::Reader reader;
+
+    if (reader.parse(http_request.GetBody(), root)) {
+      product_database.AddProduct(root["name"].asString(),
+                                  root["price"].asInt64());
+
+      return HTTP_SUACESS("Product added into the database");
+    } else {
+      return HTTP_ERROR("Json error");
+    }
   }
 
-  HTTP_Response http_error_return(HTTP_VERSION::HTTP_1_1,
-                                  HTTP_STATUS_CODE::Not_Found, {},
-                                  "404\nNot Found");
-  http_error_return.SetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server,
-                                   "Sosedneii otdel OS");
-  http_error_return.SetHeaderValue(
-      HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length, "13");
+  return HTTP_ERROR("404\nNot Found.");
+}
 
-  return http_error_return;
+void Server(int listen_socket, ProductDataBase &product_database) {
+  while (true) {
+
+    sockaddr_in client_address;
+    socklen_t client_size = sizeof(client_size);
+
+    int client_socket =
+        accept(listen_socket, (sockaddr *)&client_address, &client_size);
+
+    if (client_socket < 0) {
+      std::cerr << "[SERVER] [CONNECTION]> Error" << std::endl;
+      continue;
+    }
+
+    char buf[4096];
+
+    memset(buf, 0, 4096);
+
+    // GET DATA FROM CLIENT
+    int recv_bytes = recv(client_socket, buf, 4096, 0);
+
+    std::cerr << "Bytes recieved: " << recv_bytes << std::endl;
+
+    if (recv_bytes <= 0) {
+      std::cerr << "[SERVER]> Client off" << std::endl;
+    } else {
+
+      std::cerr << "Client: \n" << buf << std::endl;
+
+      // PARSE HTTP REQUEST
+      HTTP_Request http_request = HTTP_Request_Parser_And_Converter::
+          Parse_String_And_Convert_To_HTTP_Request(buf);
+
+      HTTP_Response http_response =
+          http_handler(http_request, product_database);
+
+      // CONVERT HTTP RESPONSE TO STRINNG
+      std::string answer =
+          HTTP_Response_Converter::Convert_HTTP_Reponse_To_String(
+              http_response);
+
+      std::cerr << "Sended: \n\n" << answer << "\n\n";
+
+      // SEND REPONSE STRING TO CLIENT
+      int ret_send = send(client_socket, answer.c_str(), answer.size() + 1, 0);
+
+      if (ret_send < 0) {
+        std::cerr << "[SERVER] [ERROR]> Send" << std::endl;
+      } else {
+        std::cerr << "[SERVER] [CONNECTION]> Send http response" << std::endl;
+      }
+    }
+
+    close(client_socket);
+  }
 }
 
 int main() {
@@ -243,63 +363,22 @@ int main() {
 
   // ---------------
 
-  while (true) {
+  std::string message = R"({"name": "Example Product", "price": 19.99})";
 
-    sockaddr_in client_address;
-    socklen_t client_size = sizeof(client_size);
+  Json::Value root;
+  Json::Reader reader;
 
-    int client_socket =
-        accept(listen_socket, (sockaddr *)&client_address, &client_size);
+  reader.parse(message, root, false);
 
-    if (client_socket < 0) {
-      std::cerr << "[SERVER] [CONNECTION]> Error" << std::endl;
-      continue;
-    }
+  std::cout << "Name: \t" << root["name"].asString() << std::endl;
+  std::cout << "Price: \t" << root["price"].asInt() << std::endl;
 
-    char buf[4096];
+  ProductDataBase product_database;
+  product_database.AddProduct("Apple", 123);
+  product_database.AddProduct("Banana", 645);
+  product_database.AddProduct("Human", 8921);
 
-    memset(buf, 0, 4096);
-
-    // GET DATA FROM CLIENT
-    int recv_bytes = recv(client_socket, buf, 4096, 0);
-
-    std::cerr << "Bytes recieved: " << recv_bytes << std::endl;
-
-    if (recv_bytes <= 0) {
-      std::cerr << "[SERVER]> Client off" << std::endl;
-    } else {
-
-      std::cerr << "Client: \n" << buf << std::endl;
-
-      // PARSE HTTP REQUEST
-      HTTP_Request http_request = HTTP_Request_Parser_And_Converter::
-          Parse_String_And_Convert_To_HTTP_Request(buf);
-
-      ProductDataBase product_database;
-      product_database.SetOrAddProduct(1, "Apple", 123);
-      product_database.SetOrAddProduct(2, "Banana", 645);
-      product_database.SetOrAddProduct(0, "Human", 8921);
-
-      HTTP_Response http_response =
-          http_handler(http_request, product_database);
-
-      // CONVERT HTTP RESPONSE TO STRINNG
-      std::string answer =
-          HTTP_Response_Converter::Convert_HTTP_Reponse_To_String(
-              http_response);
-
-      // SEND REPONSE STRING TO CLIENT
-      int ret_send = send(client_socket, answer.c_str(), answer.size() + 1, 0);
-
-      if (ret_send < 0) {
-        std::cerr << "[SERVER] [ERROR]> Send" << std::endl;
-      } else {
-        std::cerr << "[SERVER] [CONNECTION]> Send http response" << std::endl;
-      }
-    }
-
-    close(client_socket);
-  }
+  Server(listen_socket, product_database);
 
   close(listen_socket);
 }
