@@ -36,6 +36,8 @@ class Product {
 public:
   //
 public:
+  Product() {}
+
   Product(long id, const std::string &name, long price)
       : m_id(id), m_name(name), m_price(price) {}
 
@@ -49,7 +51,13 @@ public:
   void SetPrice(long price) { m_price = price; }
 
   std::string GetProductString() const {
-    return std::to_string(m_id) + " " + m_name + " " + std::to_string(m_price);
+    std::string temp;
+    temp += std::to_string(m_id);
+    temp += " ";
+    temp += m_name;
+    temp += " ";
+    temp += std::to_string(m_price);
+    return temp;
   }
 
 private:
@@ -59,6 +67,8 @@ private:
 };
 
 class ProductDataBase {
+public:
+  ProductDataBase() : m_products{} {}
 
   // Get Product - {id}  arg({id})              ret ({id}, name, price)
   Product &GetProduct(long id) {
@@ -75,7 +85,16 @@ class ProductDataBase {
   }
   // Set Product - {id}  arf({id}, name, price)
   void SetOrAddProduct(long id, const std::string &name, long price) {
-    m_products[id] = Product(id, name, price);
+
+    auto it = m_products.find(id);
+
+    if (it != m_products.end()) {
+
+      it->second = Product(id, name, price);
+      return;
+    }
+
+    m_products.emplace(std::pair<long, Product>(id, Product(id, name, price)));
   }
   // GetProductString
   std::string GetProductString(long id) {
@@ -88,12 +107,13 @@ class ProductDataBase {
     throw std::out_of_range("The product doesn't exist");
   }
   // GetProductsString
-  std::string GetProductsString(long id) {
+  std::string GetProductsString() {
     std::string answer;
     answer.reserve(1000);
 
-    for (long iii = 0; iii < m_products.size(); ++iii) {
-      answer = m_products[iii].GetProductString() + '\n';
+    for (auto it = m_products.begin(); it != m_products.end(); ++it) {
+      answer += it->second.GetProductString();
+      answer += '\n';
     }
 
     return answer;
@@ -103,7 +123,8 @@ private:
   std::map<long, Product> m_products;
 };
 
-HTTP_Response http_handler(const HTTP_Request &http_request) {
+HTTP_Response http_handler(const HTTP_Request &http_request,
+                           ProductDataBase &product_database) {
 
   if (http_request.GetMethod() == HTTP_METHODS_ENUM::GET &&
       http_request.GetTarget() == "/api/products") {
@@ -113,9 +134,16 @@ HTTP_Response http_handler(const HTTP_Request &http_request) {
 
     http_response_return.SetHeaderValue(
         HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server, "Bucket OS");
+
+    std::string message;
+    message.reserve(1000);
+
+    message = product_database.GetProductsString();
+
     http_response_return.SetHeaderValue(
-        HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length, "26");
-    http_response_return.SetBody("Zdes' dolzni bit' producti");
+        HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length,
+        std::to_string(message.size()));
+    http_response_return.SetBody(message);
 
     return http_response_return;
   }
@@ -151,13 +179,16 @@ HTTP_Response http_handler(const HTTP_Request &http_request) {
       http_response_return.SetHeaderValue(
           HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server, "Bucket OS");
 
-      std::string message = "Product id" + std::to_string(product_id);
+      std::string message = "Product id" + std::to_string(product_id) + '\n';
 
       http_response_return.SetBody(message);
 
       http_response_return.SetHeaderValue(
           HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length,
           std::to_string(message.size()));
+
+      http_response_return.SetHeaderValue(
+          HTTP_RESPONSE_HEADERS_FIELD_ENUM::Connection, "Once");
 
       std::cerr << "/API/PRODUCTS/{" << std::to_string(product_id) << "}"
                 << std::endl;
@@ -244,7 +275,13 @@ int main() {
       HTTP_Request http_request = HTTP_Request_Parser_And_Converter::
           Parse_String_And_Convert_To_HTTP_Request(buf);
 
-      HTTP_Response http_response = http_handler(http_request);
+      ProductDataBase product_database;
+      product_database.SetOrAddProduct(1, "Apple", 123);
+      product_database.SetOrAddProduct(2, "Banana", 645);
+      product_database.SetOrAddProduct(0, "Human", 8921);
+
+      HTTP_Response http_response =
+          http_handler(http_request, product_database);
 
       // CONVERT HTTP RESPONSE TO STRINNG
       std::string answer =
