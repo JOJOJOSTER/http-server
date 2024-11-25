@@ -2,7 +2,6 @@
 #define HTTP_REQUEST
 
 #include "Http_Enums.h"
-#include "Http_Header_Field.h"
 #include <map>
 #include <string>
 #include <vector>

@@ -1,3 +1,6 @@
+#ifndef HTTP_CONVERTER_H
+#define HTTP_CONVERTER_H
+
 #include "Http_Enums.h"
 #include "Http_response.h"
 #include <string>
@@ -66,3 +69,5 @@ public:
 };
 
 } // namespace jojojoster::http
+
+#endif // !HTTP_CONVERTER_H

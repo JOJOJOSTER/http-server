@@ -1,14 +1,11 @@
-#include "../http_parser/Http_Enums.h"
-#include "../http_parser/Http_converter.h"
-#include "../http_parser/Http_request.h"
-#include "../http_parser/Http_request_parse.h"
-#include "../http_parser/Http_response.h"
-#include "../http_parser/Http_response_converter.h"
+#include "../http_parser/http.h"
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <json/json.h>
 #include <json/reader.h>
 #include <json/value.h>
+#include <json/writer.h>
 #include <netinet/in.h>
 #include <stdexcept>
 #include <string>
@@ -76,36 +73,98 @@ public:
 
   // Get Product - {id}  arg({id})              ret ({id}, name, price)
   Product &GetProduct(long id) {
-    // TO-DO
-    // I can add Exeption
 
     if (id < m_products.size())
       return m_products[id];
 
-    // TO-DO throw Exeption
+    // TO-DO
+    // maybe replace expection
     throw std::out_of_range("The product doesn't exist");
   }
+
+  const Product &GetProduct(long id) const {
+    if (id < m_products.size())
+      return m_products[id];
+
+    // TO-DO
+    // maybe replace expection
+    throw std::out_of_range("The product doesn't exist");
+  }
+
+  /*
+  void SetProduct(long id, int& error_code)
+{
+    if(id > s_id)
+  {
+      error_code = -1;
+      return;
+    }
+  }
+  */
+
   // Set Product - {id}  arf({id}, name, price)
   void AddProduct(const std::string &name, long price) {
     m_products.push_back(Product(s_id++, name, price));
   }
 
   // GetProductString
-  std::string GetProductString(long id) {
+  std::string GetProductJSONString(long id) const {
 
-    return m_products[id].GetProductString();
+    Json::Value root;
+    root["name"] = m_products[id].GetName();
+    root["price"] = m_products[id].GetPrice();
+
+    Json::StreamWriterBuilder builder;
+    return Json::writeString(builder, root);
   }
   // GetProductsString
-  std::string GetProductsString() {
-    std::string answer;
-    answer.reserve(1000);
+  std::string GetProductsJsonString() const {
+
+    Json::Value root;
+    Json::Value product;
 
     for (long iii = 0; iii < s_id; ++iii) {
-      answer += m_products[iii].GetProductString();
-      answer += '\n';
+      //
+      // TO-DO
+      // Remove id from Product class.
+      // Move JsonString function
+      // to ProductDataBase class
+      //
+      product["id"] = m_products[iii].GetId();
+      product["name"] = m_products[iii].GetName();
+      product["price"] = m_products[iii].GetPrice();
+
+      root.insert(root.size(), product);
     }
 
-    return answer;
+    Json::StreamWriterBuilder builder;
+
+    return Json::writeString(builder, root);
+  }
+
+  //
+  // TO-DO
+  // Crutch
+  // We just give name "Delete".
+  //
+  // When product delete,
+  // it must be delete from
+  // std::vector.
+  //
+  //
+  void DeleteProduct(long id, int &error_code) {
+    // TO-DO
+    // Maybe add error_code
+    if (id > s_id) {
+
+      error_code = -1;
+      return;
+    }
+
+    error_code = 0;
+
+    m_products[id].SetName("Delete");
+    m_products[id].SetPrice(0);
   }
 
   long GetProductSize() const { return s_id; }
@@ -116,15 +175,44 @@ private:
   long s_id = 0;
 };
 
+//
+// TO-DO
+// Maybe change std::string on char*
+// for optimization
+int Convert_String_To_Number(const std::string &str, int &error_code) {
+  int answer = 0;
+
+  if (str.size() == 0) {
+    error_code = -1;
+    return answer;
+  }
+
+  for (size_t iii = 0; iii < str.size(); ++iii) {
+
+    if ('0' <= str[iii] && str[iii] <= '9') {
+
+      answer = (answer * 10) + (static_cast<int>(str[iii]) - 48);
+
+      // Not correct symbol
+    } else {
+      error_code = -2;
+      return -2;
+    }
+  }
+
+  error_code = 0;
+  return answer;
+}
+
 /*
 
 // TO-DO
 
-GET /api/products — get list of products.     OK
-GET /api/products/{id} — get product with id. 50% (Add json return)
-POST /api/products — add new product.         OK
-PUT /api/products/{id} — update product.      NO  (JSON)
-DELETE /api/products/{id} — delete product.   NO
+GET    /api/products — get list of products.     OK
+GET    /api/products/{id} — get product with id. OK
+POST   /api/products — add new product.          OK
+DELETE /api/products/{id} — delete product.      OK  (TO-DO in ProductDataBase)
+PUT    /api/products/{id} — update product.      OK  (JSON)
 
 */
 
@@ -140,7 +228,9 @@ HTTP_Response HTTP_ERROR(const std::string &message) {
   return http_error_return;
 }
 
-HTTP_Response HTTP_SUACESS(const std::string &message) {
+HTTP_Response HTTP_SUACESS(const std::string &message,
+                           const std::string &http_connection_type) {
+
   HTTP_Response http_error_return(HTTP_VERSION::HTTP_1_1, HTTP_STATUS_CODE::OK,
                                   {}, message);
   http_error_return.SetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server,
@@ -149,127 +239,177 @@ HTTP_Response HTTP_SUACESS(const std::string &message) {
       HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length,
       std::to_string(message.size()));
 
+  http_error_return.SetHeaderValue(HTTP_RESPONSE_HEADERS_FIELD_ENUM::Connection,
+                                   http_connection_type);
+
   return http_error_return;
 }
+
+// -------------
+// HTTP HANDLER
+// -------------
 
 HTTP_Response http_handler(const HTTP_Request &http_request,
                            ProductDataBase &product_database) {
 
-  //
+  // -------------------------------------------------------
   // Target: /API/PRODUCTS
   // Method: GET
-  //
+  // -------------------------------------------------------
   if (http_request.GetMethod() == HTTP_METHODS_ENUM::GET &&
       http_request.GetTarget() == "/api/products") {
 
-    HTTP_Response http_response_return(HTTP_VERSION::HTTP_1_1,
-                                       HTTP_STATUS_CODE::OK);
+    /*
 
     http_response_return.SetHeaderValue(
         HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server, "Bucket OS");
     http_response_return.SetHeaderValue(
         HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Type, "text/plain");
+    */
 
-    std::string message;
-    message.reserve(1000);
+    std::string message = product_database.GetProductsJsonString();
 
-    message = product_database.GetProductsString();
-
-    http_response_return.SetHeaderValue(
-        HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length,
-        std::to_string(message.size()));
-    http_response_return.SetBody(message);
-
-    return http_response_return;
+    return HTTP_SUACESS(message, "Once");
   }
   //
-  // Target: /api/products/ or /api/products/{id}
-  // Method: GET
+  // -------------------------------------------------------
+  // Target: /api/products/{id}
+  // Method: GET, DELETE, PUT  3 METHODS
+  // -------------------------------------------------------
   //
-  else if (http_request.GetMethod() == HTTP_METHODS_ENUM::GET &&
+  else if ((http_request.GetMethod() == HTTP_METHODS_ENUM::GET ||
+            http_request.GetMethod() == HTTP_METHODS_ENUM::DELETE ||
+            http_request.GetMethod() == HTTP_METHODS_ENUM::PUT) &&
            http_request.GetTarget().substr(0, 14) == "/api/products/") {
 
-    long product_id;
+    //
+    // Parse id from target (endpoint) ---------------
+    //
+
+    long parsed_from_target_product_id;
     bool idIsHas = true;
 
-    try {
-      // TO-DO
-      // Make similar function
-      // without expection
-      // (For optimization).
-      //
-      product_id = std::stol(http_request.GetTarget().substr(
-          14, http_request.GetTarget().size() - 1));
+    int error_code = -1;
+    parsed_from_target_product_id =
+        Convert_String_To_Number(http_request.GetTarget().substr(
+                                     14, http_request.GetTarget().size() - 1),
+                                 error_code);
 
-    } catch (const std::invalid_argument &ia) {
+    // std::cerr << "Error code: " << error_code << std::endl;
+    // std::cerr << "Product Id: " << product_id << std::endl;
 
-      std::cerr << "Invalid argument: " << ia.what() << std::endl;
+    if (error_code < 0) {
+      // std::cerr << "Invalid argument: " << std::endl;
       idIsHas = false;
-    } catch (const std::out_of_range &oor) {
-
-      std::cerr << "Out of range: Very larger id\n\n";
-      idIsHas = false;
+      return HTTP_ERROR("404\nNot Found\n");
     }
+
+    // The id of products should not be more quanity of product
+    if (parsed_from_target_product_id >= product_database.GetProductSize()) {
+      return HTTP_ERROR("404\nId not found.\nId not exist");
+    }
+
     //
-    // Targer: /api/products/{ID}
+    // End Parse id from target (endpoint) -----------
+    //
+
+    //
+    // %------------------------------------------------------
+    // Target: /api/products/{ID}
     // Method: GET
-    // Return Product
+    // Return Product Json
+    // %------------------------------------------------------
     //
-    if (idIsHas) {
+    if (http_request.GetMethod() == HTTP_METHODS_ENUM::GET) {
 
-      std::cerr << "/API/PRODUCTS/{id}" << std::endl;
+      // std::cerr << "/API/PRODUCTS/{" << product_id << "}" << std::endl;
 
-      HTTP_Response http_response_return(HTTP_VERSION::HTTP_1_1,
-                                         HTTP_STATUS_CODE::OK);
+      std::string message =
+          product_database.GetProductJSONString(parsed_from_target_product_id);
 
-      http_response_return.SetHeaderValue(
-          HTTP_RESPONSE_HEADERS_FIELD_ENUM::Server, "Bucket OS");
+      // std::cerr << "/API/PRODUCTS/{" << std::to_string(product_id) << "}"
+      //          << std::endl;
 
-      if (product_id >= product_database.GetProductSize()) {
-        return HTTP_ERROR("404\nId not found");
+      return HTTP_SUACESS(message, "Once");
+
+      //
+      // %------------------------------------------------------
+      // Target: /api/products/{ID}
+      // Method: Delete
+      // Return Product Json
+      // %------------------------------------------------------
+      //
+    } else if (http_request.GetMethod() == HTTP_METHODS_ENUM::DELETE) {
+
+      int error_code;
+      product_database.DeleteProduct(parsed_from_target_product_id, error_code);
+
+      if (error_code < 0) {
+        return HTTP_ERROR("Product not exist");
       }
 
-      std::string message = "Product id";
-      message += product_database.GetProductString(product_id);
-      message += '\n';
-
-      http_response_return.SetBody(message);
-
-      http_response_return.SetHeaderValue(
-          HTTP_RESPONSE_HEADERS_FIELD_ENUM::Content_Length,
-          std::to_string(message.size()));
-
-      http_response_return.SetHeaderValue(
-          HTTP_RESPONSE_HEADERS_FIELD_ENUM::Connection, "Once");
-
-      std::cerr << "/API/PRODUCTS/{" << std::to_string(product_id) << "}"
+      std::cerr << "/API/PRODUCTS/{"
+                << std::to_string(parsed_from_target_product_id) << "}"
                 << std::endl;
 
-      return http_response_return;
+      return HTTP_SUACESS("Product was deleted", "Once");
+
+    } else if (http_request.GetMethod() == HTTP_METHODS_ENUM::PUT) {
+
+      Json::Value root;
+      Json::Reader reader;
+
+      if (!reader.parse(http_request.GetBody(), root)) {
+        return HTTP_ERROR("JSON ERROR");
+      }
+
+      if (!root.isMember("price") || !root.isMember("name")) {
+        return HTTP_ERROR("JSON Members ERROR");
+      }
+
+      std::string name = root["name"].asString();
+      long price = root["price"].asInt();
+
+      product_database.GetProduct(parsed_from_target_product_id).SetName(name);
+      product_database.GetProduct(parsed_from_target_product_id)
+          .SetPrice(price);
+
+      return HTTP_SUACESS("Product updated", "Once");
     }
 
     //
+    // %------------------------------------------------------
     // Target: /api/products
     // Method: POST
     // JSON
+    // %------------------------------------------------------
     //
+
   } else if (http_request.GetMethod() == HTTP_METHODS_ENUM::POST &&
              http_request.GetTarget() == "/api/products") {
     Json::Value root;
     Json::Reader reader;
 
-    if (reader.parse(http_request.GetBody(), root)) {
-      product_database.AddProduct(root["name"].asString(),
-                                  root["price"].asInt64());
-
-      return HTTP_SUACESS("Product added into the database");
-    } else {
-      return HTTP_ERROR("Json error");
+    if (!reader.parse(http_request.GetBody(), root)) {
+      return HTTP_ERROR("JSON ERROR");
     }
+
+    if (!root.isMember("price") || !root.isMember("name")) {
+      return HTTP_ERROR("JSON Members ERROR");
+    }
+
+    std::string name = root["name"].asString();
+    long price = root["price"].asInt();
+
+    product_database.AddProduct(name, price);
+
+    return HTTP_SUACESS("Product added into the database", "Once");
+  } else {
+    return HTTP_ERROR("Json error");
   }
 
   return HTTP_ERROR("404\nNot Found.");
-}
+} // end http_parser
 
 void Server(int listen_socket, ProductDataBase &product_database) {
   while (true) {
@@ -363,20 +503,10 @@ int main() {
 
   // ---------------
 
-  std::string message = R"({"name": "Example Product", "price": 19.99})";
-
-  Json::Value root;
-  Json::Reader reader;
-
-  reader.parse(message, root, false);
-
-  std::cout << "Name: \t" << root["name"].asString() << std::endl;
-  std::cout << "Price: \t" << root["price"].asInt() << std::endl;
-
   ProductDataBase product_database;
   product_database.AddProduct("Apple", 123);
   product_database.AddProduct("Banana", 645);
-  product_database.AddProduct("Human", 8921);
+  product_database.AddProduct("Rabbit", 8921);
 
   Server(listen_socket, product_database);
 
