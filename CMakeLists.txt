@@ -3,24 +3,16 @@ project(http-server)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_library(http_parser_lib STATIC
-  http_parser/Http_Enums.h 
-  http_parser/Http_request.h 
-  http_parser/Http_request.cpp 
-  http_parser/Http_request_parse.h 
-  http_parser/Http_request_parse.cpp
-  http_parser/Http_response.h 
-  http_parser/Http_response.cpp
-  http_parser/Http_Header_Field.h
-  http_parser/Http_converter.h 
-  http_parser/Http_converter.cpp
-  http_parser/Http_response_converter.h
-  http_parser/Http_response_converter.cpp)
+# Add http_parser_lib
+add_subdirectory(http_parser)
 
-find_package(jsoncpp REQUIRED)
+# Add jsoncpp_lib
+add_subdirectory(jsoncpp)
 
 add_executable(http_server example/http-server.cpp )
-target_link_libraries(http_server http_parser_lib jsoncpp )
+target_link_libraries(http_server http_parser_lib jsoncpp_lib )
+
+message("SOURCE DIR : ${CMAKE_SOURCE_DIR}")
 
 # TESTS 
 

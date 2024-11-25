@@ -353,7 +353,13 @@ HTTP_Response http_handler(const HTTP_Request &http_request,
                 << std::endl;
 
       return HTTP_SUACESS("Product was deleted", "Once");
-
+      //
+      // %------------------------------------------------------
+      // Target: /api/products/{ID}
+      // Method: PUT
+      // Json
+      // %------------------------------------------------------
+      //
     } else if (http_request.GetMethod() == HTTP_METHODS_ENUM::PUT) {
 
       Json::Value root;
@@ -404,8 +410,6 @@ HTTP_Response http_handler(const HTTP_Request &http_request,
     product_database.AddProduct(name, price);
 
     return HTTP_SUACESS("Product added into the database", "Once");
-  } else {
-    return HTTP_ERROR("Json error");
   }
 
   return HTTP_ERROR("404\nNot Found.");
