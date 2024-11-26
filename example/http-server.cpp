@@ -104,7 +104,7 @@ public:
 
   // Set Product - {id}  arf({id}, name, price)
   void AddProduct(const std::string &name, long price) {
-    m_products.push_back(Product(s_id++, name, price));
+    m_products.push_back(Product(m_total_id++, name, price));
   }
 
   // GetProductString
@@ -123,16 +123,16 @@ public:
     Json::Value root;
     Json::Value product;
 
-    for (long iii = 0; iii < s_id; ++iii) {
+    for (long id_counter = 0; id_counter < m_total_id; ++id_counter) {
       //
       // TO-DO
       // Remove id from Product class.
       // Move JsonString function
       // to ProductDataBase class
       //
-      product["id"] = m_products[iii].GetId();
-      product["name"] = m_products[iii].GetName();
-      product["price"] = m_products[iii].GetPrice();
+      product["id"] = id_counter;
+      product["name"] = m_products[id_counter].GetName();
+      product["price"] = m_products[id_counter].GetPrice();
 
       root.insert(root.size(), product);
     }
@@ -142,20 +142,10 @@ public:
     return Json::writeString(builder, root);
   }
 
-  //
-  // TO-DO
-  // Crutch
-  // We just give name "Delete".
-  //
-  // When product delete,
-  // it must be delete from
-  // std::vector.
-  //
-  //
   void DeleteProduct(long id, int &error_code) {
     // TO-DO
     // Maybe add error_code
-    if (id > s_id) {
+    if (id > m_total_id) {
 
       error_code = -1;
       return;
@@ -163,16 +153,17 @@ public:
 
     error_code = 0;
 
-    m_products[id].SetName("Delete");
-    m_products[id].SetPrice(0);
+    m_products.erase(m_products.begin() + id);
+
+    --m_total_id;
   }
 
-  long GetProductSize() const { return s_id; }
+  long GetProductSize() const { return m_total_id; }
 
 private:
   std::vector<Product> m_products;
 
-  long s_id = 0;
+  long m_total_id = 0;
 };
 
 //
